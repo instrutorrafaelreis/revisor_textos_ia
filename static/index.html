@@ -32,25 +32,23 @@
                 <button id="tab-text" class="py-2 px-4 text-gray-500 font-semibold hover:text-blue-500 focus:outline-none transition-colors">Colar Texto</button>
             </div>
 
-            <!-- Área de Upload -->
+            <!-- Área de Upload (Ativa por padrão) -->
             <div id="area-upload" class="block">
-                <div id="drop-zone" class="border-2 border-dashed border-blue-300 rounded-lg p-12 text-center hover:bg-blue-50 transition-colors cursor-pointer">
+                <div id="drop-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center hover:bg-gray-50 transition-colors cursor-pointer bg-white">
+                    <input type="file" id="file-input" class="hidden" accept=".pdf,.docx,.md,.tex">
                     <i class="fas fa-cloud-upload-alt text-5xl text-blue-500 mb-4"></i>
-                    <h3 class="text-xl font-semibold mb-2">Clique ou arraste seu documento aqui</h3>
-                    <p class="text-sm text-gray-500">Arquivos suportados: PDF, DOCX, Markdown (.md)</p>
-                    <input type="file" id="file-input" class="hidden" accept=".pdf,.docx,.md">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Clique para enviar um arquivo</h3>
+                    <p class="text-gray-500">Arquivos suportados: PDF, DOCX, Markdown (.md), LaTeX (.tex)</p>
                 </div>
-                <div id="file-info" class="hidden mt-4 flex items-center justify-between bg-blue-50 p-4 rounded-lg border border-blue-100">
-                    <div class="flex items-center">
-                        <i class="fas fa-file-alt text-blue-500 text-2xl mr-3"></i>
-                        <span id="file-name" class="font-medium text-gray-700">documento.pdf</span>
-                    </div>
+                <div id="file-info" class="mt-4 hidden p-3 bg-blue-50 text-blue-700 rounded-md inline-block">
+                    <i class="fas fa-file-alt mr-2"></i><span id="file-name" class="font-medium">Nenhum arquivo selecionado</span>
                 </div>
             </div>
 
-            <!-- Área de Texto Livre -->
-            <div id="area-text" class="hidden">
-                <textarea id="text-input" class="w-full h-48 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow resize-y" placeholder="Cole aqui o trecho do texto que você quer analisar..."></textarea>
+            <!-- Área de Colar Texto (Oculta por padrão) -->
+            <div id="area-text" class="hidden bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                <label for="text-input" class="block text-sm font-medium text-gray-700 mb-2">Cole o seu texto acadêmico ou script LaTeX:</label>
+                <textarea id="text-input" class="w-full h-48 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow resize-y" placeholder="Cole aqui o trecho do texto ou o seu código LaTeX para análise..."></textarea>
             </div>
 
             <!-- Área de Ação e Seleção de Modelo -->

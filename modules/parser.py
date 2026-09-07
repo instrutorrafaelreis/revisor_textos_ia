@@ -51,7 +51,7 @@ def parse_document(file_path):
         text = extract_text_from_pdf(file_path)
     elif ext == '.docx':
         text = extract_text_from_docx(file_path)
-    elif ext == '.md':
+    elif ext in ['.md', '.tex']:
         text = extract_text_from_md(file_path)
     else:
         print(f"Formato não suportado: {ext}")
