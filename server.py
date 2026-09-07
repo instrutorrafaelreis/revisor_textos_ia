@@ -6,7 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from modules.parser import parse_document
-from modules.fact_checker import analyze_references
 from modules.stylometrics import analyze_style
 from modules.semantic_judge import evaluate_text_semantics
 from utils.report_generator import generate_report
@@ -28,9 +27,8 @@ os.makedirs("static", exist_ok=True)
 # Servindo os arquivos do Frontend
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-@app.get("/")
-def read_root():
-    # Rota raiz que entrega o nosso HTML (Interface Visual)
+@app.get("/", response_class=HTMLResponse)
+async def serve_frontend():
     index_path = os.path.join("static", "index.html")
     if os.path.exists(index_path):
         with open(index_path, "r", encoding="utf-8") as f:
@@ -71,17 +69,17 @@ async def analyze_file(
         import time
         
         t0 = time.time()
-        fact_check_results = analyze_references(parsed_data.get('references_section'))
+        # O Fact Checker (Crossref via internet) foi removido para focar na leitura do manual offline!
+        fact_check_results = [] 
         t1 = time.time()
-        print(f"[DEBUG] Tempo do Fact Checker (Crossref): {t1 - t0:.2f}s")
         
         style_results = analyze_style(parsed_data.get('full_text'))
         t2 = time.time()
-        print(f"[DEBUG] Tempo de Estilometria (PyTorch/Regex): {t2 - t1:.2f}s")
+        print(f"[DEBUG] Tempo de Estilometria: {t2 - t1:.2f}s")
         
         semantic_results = evaluate_text_semantics(parsed_data.get('full_text'), model_choice=model_choice)
         t3 = time.time()
-        print(f"[DEBUG] Tempo do Juiz Semântico (APIs de IA): {t3 - t2:.2f}s")
+        print(f"[DEBUG] Tempo do Juiz Semântico: {t3 - t2:.2f}s")
         print(f"[DEBUG] TEMPO TOTAL DE ANÁLISE: {t3 - t0:.2f}s")
         
         results = {

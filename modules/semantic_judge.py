@@ -58,33 +58,45 @@ def evaluate_text_semantics(text, model_choice="todos"):
     if not getattr(config, 'USE_GEMINI', False) and not getattr(config, 'USE_NVIDIA', False):
         return 'Configuração de modelos desativada.'
         
+    # Tenta carregar o manual ABNT fornecido pelo usuário
+    abnt_rules = ""
+    try:
+        with open("abnt/guia_de_normalizacao_2026.md", "r", encoding="utf-8") as f:
+            abnt_rules = f.read()
+    except Exception as e:
+        print(f"Aviso: Manual ABNT não encontrado ou erro de leitura: {e}")
+
     prompt = f"""Você é um auditor acadêmico rigoroso. Seu objetivo é analisar o texto e entregar instruções de melhoria.
 
 Analise o texto quanto a:
 1. Circularidade argumentativa e clichês de IA.
 2. Superficialidade técnica.
-3. Normas da ABNT (citações e referências).
+3. Normas da ABNT (citações e referências) rigorosamente baseadas no manual fornecido.
 
 SAÍDA OBRIGATÓRIA (Siga ESTRITAMENTE este formato):
 
 **Análise Geral**: (Breve avaliação crítica do texto)
 
-**O Que Corrigir**: (Liste os principais problemas encontrados no texto)
+**O Que Corrigir**: (Liste os principais problemas encontrados no texto. Foque especialmente em apontar desvios exatos das regras do manual ABNT fornecido)
 
-**Indícios de Plágio**: (Avalie se o texto possui trechos exatos muito comuns na internet, jargões copiados de enciclopédias ou artigos famosos. Atribua um nível de 'Risco de Plágio' de Baixo, Médio ou Alto e justifique).
+**Indícios de Plágio**: (Avalie se o texto possui trechos exatos muito comuns na internet. Atribua 'Risco de Plágio' Baixo, Médio ou Alto).
 
 **Prompt Sugerido para Correção (Copiar e Colar)**:
 Crie um PROMPT PRONTO E OTIMIZADO que o usuário possa copiar e colar no ChatGPT, Claude ou qualquer outra IA externa para consertar o texto dele de forma automática.
 O prompt que você gerar DEVE incluir comandos rigorosos para:
-- Remover os clichês, marcas d'água e circularidades específicas que você encontrou.
-- Ajustar a densidade do texto para um tom acadêmico sênior humano.
-- Corrigir os erros de ABNT identificados.
-*Nota: Coloque esse prompt dentro de um bloco de citação ou código para que o usuário saiba que é a área copiável.*
+- Remover os clichês.
+- Ajustar a densidade do texto.
+- Corrigir os erros de ABNT de acordo com as regras do manual fornecido abaixo.
+*Nota: Coloque esse prompt dentro de um bloco de código para que o usuário saiba que é a área copiável.*
 
-**Score de Risco Semântico**: (Nota de 0 a 10, onde 10 é altíssima probabilidade de IA)
+**Score de Risco Semântico**: (Nota de 0 a 10)
 
 Trecho a analisar:
 {text[:3000]}
+
+--- 
+MANUAL DE NORMALIZAÇÃO ABNT 2026 (BASE DE CONHECIMENTO):
+{abnt_rules}
 """
     
     evaluations = []
