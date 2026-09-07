@@ -83,13 +83,6 @@ Selecione de 2 a 4 trechos problemáticos e formate EXATAMENTE assim, com quebra
 *Corrigido:*
 > (Escreva a versão corrigida, removendo clichês e arrumando a ABNT)
 
-**Versão Final Desintoxicada (Texto Completo)**:
-Reescreva TODO o texto fornecido pelo usuário em uma versão única, fluida e impecável. 
-Seu objetivo nesta reescrita é:
-1. **Destruir Marcas d'Água Ocultas de IA:** Mude radicalmente a entropia, a estrutura sintática e a escolha de sinônimos para quebrar qualquer marca d'água criptográfica ou estatística embutida por outras IAs.
-2. **Remoção de Clichês:** Elimine terminantemente expressões como "Em resumo", "É importante notar que", "Mergulhe", "Paisagem em evolução", etc.
-3. Garanta que o texto final pareça ter sido escrito por um acadêmico humano sênior (direto, denso e objetivo).
-
 **Score de Risco Semântico**: (Nota de 0 a 10, onde 10 é altíssima probabilidade de IA)
 
 Trecho a analisar:

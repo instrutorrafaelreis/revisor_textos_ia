@@ -22,6 +22,17 @@ def check_reference_crossref(reference_text):
         print(f'Error calling Crossref: {e}')
     return None
 
+import concurrent.futures
+
+def process_single_reference(ref):
+    if len(ref) > 20:
+        match = check_reference_crossref(ref)
+        if match:
+            return {'reference': ref, 'found': True, 'crossref_data': match}
+        else:
+            return {'reference': ref, 'found': False, 'crossref_data': None}
+    return None
+
 def analyze_references(references_text):
     if not references_text:
         return []
@@ -45,12 +56,12 @@ def analyze_references(references_text):
         refs.append(current_ref)
         
     results = []
-    for ref in refs:
-        if len(ref) > 20: # ignore garbage
-            match = check_reference_crossref(ref)
-            if match:
-                # Score indicates relevance. Low score might mean hallucination
-                results.append({'reference': ref, 'found': True, 'crossref_data': match})
-            else:
-                results.append({'reference': ref, 'found': False, 'crossref_data': None})
+    # Paraleliza as requisições ao Crossref (super rápido)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_ref = {executor.submit(process_single_reference, ref): ref for ref in refs}
+        for future in concurrent.futures.as_completed(future_to_ref):
+            res = future.result()
+            if res:
+                results.append(res)
+                
     return results
