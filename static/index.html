@@ -102,9 +102,12 @@
 
             <!-- Análise Semântica -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 relative">
-                <div class="flex justify-between items-center mb-6 bg-blue-50 p-3 rounded-lg">
+                <div class="flex justify-between items-center mb-6 bg-blue-50 p-3 rounded-lg flex-wrap gap-4">
                     <h3 class="text-xl font-bold text-blue-900"><i class="fas fa-brain mr-2"></i> Avaliação do Juiz Semântico</h3>
                     <div class="flex gap-2">
+                        <button id="btn-generate-prompt" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded shadow transition-colors text-sm">
+                            <i class="fas fa-magic mr-1"></i> Gerar Prompt Externo
+                        </button>
                         <button id="btn-export-md" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow transition-colors text-sm">
                             <i class="fas fa-download mr-1"></i> (.md)
                         </button>
@@ -113,6 +116,14 @@
                         </button>
                     </div>
                 </div>
+                
+                <div id="prompt-area" class="hidden mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <h4 class="text-purple-800 font-bold mb-2">Prompt Sugerido (Copie e cole no ChatGPT/Claude):</h4>
+                    <div class="relative">
+                        <textarea id="generated-prompt-text" class="w-full h-32 p-3 text-sm font-mono border border-purple-300 rounded focus:outline-none" readonly></textarea>
+                    </div>
+                </div>
+                
                 <div id="semantic-content" class="markdown-body text-gray-700">
                     <!-- Conteúdo gerado entra aqui -->
                 </div>
@@ -319,6 +330,50 @@
                 alert("Falha na requisição: " + error.message);
                 loader.classList.add('hidden');
                 if (activeTab === 'upload') dropZone.classList.remove('hidden');
+            }
+        });
+
+        // Requisição para gerar Prompt Externo (Botão sob demanda)
+        const btnGeneratePrompt = document.getElementById('btn-generate-prompt');
+        const promptArea = document.getElementById('prompt-area');
+        const generatedPromptText = document.getElementById('generated-prompt-text');
+
+        btnGeneratePrompt.addEventListener('click', async () => {
+            if (!lastReportData || !lastReportData.detalhes || (!lastReportData.detalhes.full_text && activeTab !== 'text')) {
+                alert("Você precisa realizar uma análise primeiro!");
+                return;
+            }
+
+            const formData = new FormData();
+            // Pega o texto da última análise (do arquivo ou colado)
+            let rawText = textInput.value.trim();
+            if (activeTab === 'upload' && lastReportData.detalhes && lastReportData.detalhes.full_text) {
+                rawText = lastReportData.detalhes.full_text;
+            }
+            formData.append('text', rawText);
+
+            btnGeneratePrompt.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Gerando...';
+            btnGeneratePrompt.disabled = true;
+
+            try {
+                const response = await fetch('/api/generate_prompt', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) throw new Error("Erro ao gerar prompt.");
+                const data = await response.json();
+                
+                if (data.error) throw new Error(data.error);
+
+                generatedPromptText.value = data.prompt;
+                promptArea.classList.remove('hidden');
+                
+            } catch (error) {
+                alert("Falha: " + error.message);
+            } finally {
+                btnGeneratePrompt.innerHTML = '<i class="fas fa-magic mr-1"></i> Gerar Prompt Externo';
+                btnGeneratePrompt.disabled = false;
             }
         });
     </script>

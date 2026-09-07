@@ -81,13 +81,15 @@ SAÍDA OBRIGATÓRIA (Siga ESTRITAMENTE este formato):
 
 **Indícios de Plágio**: (Avalie se o texto possui trechos exatos muito comuns na internet. Atribua 'Risco de Plágio' Baixo, Médio ou Alto).
 
-**Prompt Sugerido para Correção (Copiar e Colar)**:
-Crie um PROMPT PRONTO E OTIMIZADO que o usuário possa copiar e colar no ChatGPT, Claude ou qualquer outra IA externa para consertar o texto dele de forma automática.
-O prompt que você gerar DEVE incluir comandos rigorosos para:
-- Remover os clichês.
-- Ajustar a densidade do texto.
-- Corrigir os erros de ABNT de acordo com as regras do manual fornecido abaixo.
-*Nota: Coloque esse prompt dentro de um bloco de código para que o usuário saiba que é a área copiável.*
+**Correção dos Trechos Específicos**: 
+Selecione de 2 a 4 trechos problemáticos e formate EXATAMENTE assim, com quebras de linha:
+
+**Trecho 1:**
+*Original:*
+> (Cole o texto original aqui)
+
+*Corrigido:*
+> (Escreva a versão corrigida, removendo clichês e aplicando rigorosamente as regras da ABNT do manual)
 
 **Score de Risco Semântico**: (Nota de 0 a 10)
 

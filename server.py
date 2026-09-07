@@ -95,3 +95,27 @@ async def analyze_file(
     finally:
         # Limpar arquivo temporário se quiser (opcional)
         pass
+
+@app.post("/api/generate_prompt")
+async def generate_prompt(text: str = Form(...)):
+    try:
+        import config
+        from google import genai
+        from google.genai import types
+        
+        client = genai.Client(api_key=config.GEMINI_API_KEY)
+        prompt_instruction = f"""Com base neste texto acadêmico que possui erros, gere um PROMPT DE COMANDO para o usuário copiar e colar no ChatGPT/Claude.
+        O prompt gerado deve instruir a IA externa a corrigir erros de ABNT e remover clichês.
+        Responda APENAS com o texto do prompt, para ser facilmente copiado.
+        
+        Texto original:
+        {text[:2500]}"""
+        
+        res = client.models.generate_content(
+            model=config.GEMINI_MODEL,
+            contents=prompt_instruction,
+            config=types.GenerateContentConfig(temperature=0.3)
+        )
+        return {"prompt": res.text}
+    except Exception as e:
+        return {"error": str(e)}

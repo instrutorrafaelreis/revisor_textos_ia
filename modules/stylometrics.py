@@ -18,8 +18,39 @@ def count_llm_markers(text):
     return count, found_markers
 
 def calculate_perplexity(text):
-    # Desativado hardcoded para evitar qualquer gargalo de memória/CPU
-    return "Desativado (Foco em Desempenho)"
+    # Only load model if called to save memory/time
+    try:
+        import torch
+        from transformers import GPT2LMHeadModel, GPT2Tokenizer
+        
+        tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+        model = GPT2LMHeadModel.from_pretrained('gpt2')
+        
+        encodings = tokenizer(text, return_tensors='pt', max_length=512, truncation=True)
+        max_length = model.config.n_positions
+        stride = 512
+        
+        nlls = []
+        for i in range(0, encodings.input_ids.size(1), stride):
+            begin_loc = max(i + stride - max_length, 0)
+            end_loc = min(i + stride, encodings.input_ids.size(1))
+            trg_len = end_loc - i    # may be different from stride on last loop
+            input_ids = encodings.input_ids[:, begin_loc:end_loc]
+            target_ids = input_ids.clone()
+            target_ids[:, :-trg_len] = -100
+            
+            with torch.no_grad():
+                outputs = model(input_ids, labels=target_ids)
+                neg_log_likelihood = outputs.loss * trg_len
+            nlls.append(neg_log_likelihood)
+            
+        ppl = torch.exp(torch.stack(nlls).sum() / end_loc)
+        return ppl.item()
+    except ImportError:
+        return "Desativado (Modo Leve)"
+    except Exception as e:
+        print(f'Error calculating perplexity: {e}')
+        return None
 
 def analyze_style(text):
     marker_count, markers = count_llm_markers(text)
