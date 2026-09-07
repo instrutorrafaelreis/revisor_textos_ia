@@ -9,10 +9,11 @@ def check_reference_crossref(reference_text):
     params = {
         'query.bibliographic': reference_text,
         'rows': 1,
-        'select': 'title,author,DOI,score'
+        'select': 'title,author,DOI,score',
+        'mailto': 'auditor_academico@exemplo.com'
     }
     try:
-        response = requests.get(url, params=params, timeout=10)
+        response = requests.get(url, params=params, timeout=3)
         if response.status_code == 200:
             data = response.json()
             items = data.get('message', {}).get('items', [])

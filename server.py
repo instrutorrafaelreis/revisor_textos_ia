@@ -68,9 +68,21 @@ async def analyze_file(
             return {"error": "Não foi possível extrair o texto."}
             
         # 3. Análises
+        import time
+        
+        t0 = time.time()
         fact_check_results = analyze_references(parsed_data.get('references_section'))
+        t1 = time.time()
+        print(f"[DEBUG] Tempo do Fact Checker (Crossref): {t1 - t0:.2f}s")
+        
         style_results = analyze_style(parsed_data.get('full_text'))
+        t2 = time.time()
+        print(f"[DEBUG] Tempo de Estilometria (PyTorch/Regex): {t2 - t1:.2f}s")
+        
         semantic_results = evaluate_text_semantics(parsed_data.get('full_text'), model_choice=model_choice)
+        t3 = time.time()
+        print(f"[DEBUG] Tempo do Juiz Semântico (APIs de IA): {t3 - t2:.2f}s")
+        print(f"[DEBUG] TEMPO TOTAL DE ANÁLISE: {t3 - t0:.2f}s")
         
         results = {
             "fact_checking": fact_check_results,
