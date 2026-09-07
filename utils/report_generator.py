@@ -19,7 +19,7 @@ def generate_report(results, output_path="report.json"):
     report = {
         "risco_referencias_falsas": f"{ref_hallucination_score:.1f}/10",
         "marcadores_llm_encontrados": markers,
-        "perplexidade_texto": f"{ppl:.2f}" if ppl else "N/A",
+        "perplexidade_texto": f"{ppl:.2f}" if isinstance(ppl, (int, float)) else str(ppl),
         "juiz_semantico": results.get('semantic_judge_analysis'),
         "detalhes": results
     }
