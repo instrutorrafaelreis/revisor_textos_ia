@@ -1,6 +1,4 @@
 import re
-import torch
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
 LLM_MARKERS = [
     'Em suma', 'É imperativo notar que', 'Vale destacar que', 
@@ -22,6 +20,9 @@ def count_llm_markers(text):
 def calculate_perplexity(text):
     # Only load model if called to save memory/time
     try:
+        import torch
+        from transformers import GPT2LMHeadModel, GPT2Tokenizer
+        
         tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
         model = GPT2LMHeadModel.from_pretrained('gpt2')
         
@@ -45,6 +46,8 @@ def calculate_perplexity(text):
             
         ppl = torch.exp(torch.stack(nlls).sum() / end_loc)
         return ppl.item()
+    except ImportError:
+        return "Desativado (Modo Leve)"
     except Exception as e:
         print(f'Error calculating perplexity: {e}')
         return None
