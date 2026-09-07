@@ -1,0 +1,121 @@
+from google import genai
+from google.genai import types
+from openai import OpenAI
+import requests
+import sys
+import os
+
+# Adiciona o diretorio pai ao path para importar config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import config
+
+def evaluate_text_semantics(text, model_choice="todos"):
+    """
+    Avalia a semântica do texto (clichês, coesão, estilo acadêmico) via LLM (Gemini e/ou NVIDIA).
+    """
+    if not text or len(text.strip()) < 50:
+        return "Texto insuficiente para análise semântica estrutural."
+        
+    if not getattr(config, 'USE_GEMINI', False) and not getattr(config, 'USE_NVIDIA', False):
+        return 'Configuração de modelos desativada.'
+        
+    client = genai.Client(api_key=config.GEMINI_API_KEY)
+        
+    prompt = f"""Você é um auditor acadêmico rigoroso. Seu objetivo é analisar o texto e entregar instruções de melhoria exclusivamente no formato de PROMPTS PRONTOS.
+
+Analise o texto quanto a:
+1. Circularidade argumentativa e clichês de IA.
+2. Superficialidade técnica.
+3. Normas da ABNT (citações e referências).
+
+SAÍDA OBRIGATÓRIA (Siga ESTRITAMENTE este formato e forneça exemplos reais baseados no texto lido):
+
+**Análise Geral**: (Breve avaliação crítica do texto)
+
+**O Que Corrigir**: (Liste os problemas encontrados)
+
+**Indícios de Plágio**: (Avalie se o texto possui trechos exatos muito comuns na internet, jargões copiados de enciclopédias ou artigos famosos. Atribua um nível de 'Risco de Plágio' de Baixo, Médio ou Alto e justifique).
+
+**Correção dos Trechos Específicos**: 
+Selecione de 2 a 4 trechos problemáticos e formate EXATAMENTE assim, com quebras de linha:
+
+**Trecho 1:**
+*Original:*
+> (Cole o texto original aqui)
+
+*Corrigido:*
+> (Escreva a versão corrigida, removendo clichês e arrumando a ABNT)
+
+**Versão Final Desintoxicada (Texto Completo)**:
+Reescreva TODO o texto fornecido pelo usuário em uma versão única, fluida e impecável. 
+Seu objetivo nesta reescrita é:
+1. **Destruir Marcas d'Água Ocultas de IA:** Mude radicalmente a entropia, a estrutura sintática e a escolha de sinônimos para quebrar qualquer marca d'água criptográfica ou estatística embutida por outras IAs.
+2. **Remoção de Clichês:** Elimine terminantemente expressões como "Em resumo", "É importante notar que", "Mergulhe", "Paisagem em evolução", etc.
+3. Garanta que o texto final pareça ter sido escrito por um acadêmico humano sênior (direto, denso e objetivo).
+
+**Score de Risco Semântico**: (Nota de 0 a 10, onde 10 é altíssima probabilidade de IA)
+
+Trecho a analisar:
+{text[:3000]}
+"""
+    evaluations = []
+    
+    # 1. Avaliação via Gemini (Nuvem)
+    if getattr(config, 'USE_GEMINI', False) and model_choice in ["todos", "gemini"]:
+        try:
+            response = client.models.generate_content(
+                model=config.GEMINI_MODEL,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    temperature=0.3,
+                    system_instruction="Você é um assistente rigoroso de revisão acadêmica. IMPORTANTE: Sua resposta deve ser EXCLUSIVAMENTE em Português do Brasil (PT-BR)."
+                )
+            )
+            evaluations.append(f"### ✨ Análise do Modelo Nuvem (Gemini - {config.GEMINI_MODEL})\n\n{response.text}")
+        except Exception as e:
+            evaluations.append(f"### ✨ Análise do Modelo Nuvem (Gemini)\n\n**Erro:** {e}")
+
+    # 2. Avaliação via NVIDIA NIM (Múltiplos Modelos)
+    if getattr(config, 'USE_NVIDIA', False) and model_choice in ["todos", "llama", "deepseek"]:
+        try:
+            client_nv = OpenAI(
+                base_url="https://integrate.api.nvidia.com/v1",
+                api_key=config.NVIDIA_API_KEY
+            )
+            
+            # Filtra os modelos baseado na escolha
+            models_to_run = []
+            if model_choice == "todos":
+                models_to_run = getattr(config, 'NVIDIA_MODELS', [])
+            elif model_choice == "llama":
+                models_to_run = ['meta/llama-3.2-11b-vision-instruct']
+            elif model_choice == "deepseek":
+                models_to_run = ['deepseek-ai/deepseek-v4-pro-0813']
+                
+            for model_name in models_to_run:
+                try:
+                    kwargs = {
+                        "model": model_name,
+                        "messages": [
+                            {"role": "system", "content": "Você é um assistente rigoroso de revisão acadêmica. IMPORTANTE: Sua resposta deve ser EXCLUSIVAMENTE em Português do Brasil (PT-BR). NÃO VAZAR PROCESSO DE PENSAMENTO. NÃO mostre tags como <think> ou 'Here is a thinking process'. Retorne APENAS o relatório final formatado."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        "temperature": 0.3,
+                        "max_tokens": 2500,
+                        "stream": False
+                    }
+                    
+                    # Apenas a família DeepSeek suporta e requer esse bloqueio nativo via API
+                    if "deepseek" in model_name.lower():
+                        kwargs["extra_body"] = {"chat_template_kwargs": {"thinking": False}}
+                        
+                    completion = client_nv.chat.completions.create(**kwargs)
+                    nv_text = completion.choices[0].message.content
+                    evaluations.append(f"### 🟢 Análise do Modelo Nuvem (NVIDIA - {model_name})\n\n{nv_text}")
+                except Exception as e:
+                    evaluations.append(f"### 🟢 Análise do Modelo Nuvem (NVIDIA - {model_name})\n\n**Erro:** {e}")
+                    
+        except Exception as e:
+            evaluations.append(f"### 🟢 Erro Geral na Conexão NVIDIA\n\n**Erro:** {e}")
+
+    return "\n\n---\n\n".join(evaluations)

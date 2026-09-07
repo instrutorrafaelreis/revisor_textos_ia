@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditor Acadêmico</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .markdown-body h2 { font-size: 1.5rem; font-weight: bold; margin-top: 1.5rem; margin-bottom: 1rem; color: #1e3a8a; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5rem; }
+        .markdown-body h3 { font-size: 1.25rem; font-weight: bold; margin-top: 1.2rem; margin-bottom: 0.5rem; }
+        .markdown-body p { margin-bottom: 1rem; line-height: 1.6; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
+        .markdown-body strong { color: #111827; }
+        .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; color: #4b5563; font-style: italic; background-color: #f3f4f6; padding: 1rem; border-radius: 0.25rem; margin-bottom: 1rem; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
+    
+    <div class="max-w-5xl mx-auto py-10 px-4">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-blue-900 mb-2"><i class="fas fa-graduation-cap"></i> Auditor Acadêmico com IA</h1>
+            <p class="text-gray-600 text-lg">Faça o upload do seu texto (PDF, DOCX ou MD) e receba uma análise semântica e estrutural completa.</p>
+        </header>
+
+        <!-- Container de Upload -->
+        <div class="bg-white rounded-xl shadow-md p-8 mb-8">
+            <!-- Abas (Tabs) -->
+            <div class="flex border-b border-gray-200 mb-6">
+                <button id="tab-upload" class="py-2 px-4 text-blue-600 font-semibold border-b-2 border-blue-600 focus:outline-none">Upload de Arquivo</button>
+                <button id="tab-text" class="py-2 px-4 text-gray-500 font-semibold hover:text-blue-500 focus:outline-none transition-colors">Colar Texto</button>
+            </div>
+
+            <!-- Área de Upload -->
+            <div id="area-upload" class="block">
+                <div id="drop-zone" class="border-2 border-dashed border-blue-300 rounded-lg p-12 text-center hover:bg-blue-50 transition-colors cursor-pointer">
+                    <i class="fas fa-cloud-upload-alt text-5xl text-blue-500 mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Clique ou arraste seu documento aqui</h3>
+                    <p class="text-sm text-gray-500">Arquivos suportados: PDF, DOCX, Markdown (.md)</p>
+                    <input type="file" id="file-input" class="hidden" accept=".pdf,.docx,.md">
+                </div>
+                <div id="file-info" class="hidden mt-4 flex items-center justify-between bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <div class="flex items-center">
+                        <i class="fas fa-file-alt text-blue-500 text-2xl mr-3"></i>
+                        <span id="file-name" class="font-medium text-gray-700">documento.pdf</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Área de Texto Livre -->
+            <div id="area-text" class="hidden">
+                <textarea id="text-input" class="w-full h-48 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow resize-y" placeholder="Cole aqui o trecho do texto que você quer analisar..."></textarea>
+            </div>
+
+            <!-- Área de Ação e Seleção de Modelo -->
+            <div class="mt-6 flex flex-col md:flex-row md:items-end justify-between gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div class="w-full md:w-1/2">
+                    <label for="model-select" class="block text-sm font-medium text-gray-700 mb-2"><i class="fas fa-microchip text-blue-500"></i> Escolha a Inteligência Artificial:</label>
+                    <select id="model-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm cursor-pointer">
+                        <option value="gemini" selected>✨ Google Gemini 3.5 Flash (Rápido)</option>
+                        <option value="llama">🔵 Meta Llama 3.2 Vision (NVIDIA)</option>
+                        <option value="deepseek">🟢 DeepSeek V4 Pro (NVIDIA)</option>
+                        <option value="todos">🚀 Executar Todos Juntos (Demorado)</option>
+                    </select>
+                </div>
+                
+                <button id="btn-analyze" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-colors text-lg w-full md:w-auto flex-shrink-0">
+                    Auditar Conteúdo <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Loader -->
+        <div id="loader" class="hidden flex flex-col items-center justify-center py-12">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
+            <h3 class="text-xl font-medium text-gray-700">A IA está analisando seu conteúdo...</h3>
+            <p class="text-gray-500 mt-2">Isso pode levar alguns segundos.</p>
+        </div>
+
+        <!-- Resultados -->
+        <div id="results" class="hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2"><i class="fas fa-chart-bar text-blue-500 mr-2"></i> Relatório de Auditoria</h2>
+            
+            <!-- Cards de Métricas -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
+                    <h4 class="text-gray-500 text-sm font-semibold mb-1">Referências Falsas</h4>
+                    <p id="metric-refs" class="text-2xl font-bold text-gray-800">0.0/10</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">
+                    <h4 class="text-gray-500 text-sm font-semibold mb-1">Marcadores de IA</h4>
+                    <p id="metric-markers" class="text-2xl font-bold text-gray-800">0</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                    <h4 class="text-gray-500 text-sm font-semibold mb-1">Perplexidade</h4>
+                    <p id="metric-perplexity" class="text-2xl font-bold text-gray-800">N/A</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500">
+                    <h4 class="text-gray-500 text-sm font-semibold mb-1">Risco de Plágio</h4>
+                    <p id="metric-plagiarism" class="text-2xl font-bold text-gray-800">N/A</p>
+                </div>
+            </div>
+
+            <!-- Análise Semântica -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 relative">
+                <div class="flex justify-between items-center mb-6 bg-blue-50 p-3 rounded-lg">
+                    <h3 class="text-xl font-bold text-blue-900"><i class="fas fa-brain mr-2"></i> Avaliação do Juiz Semântico</h3>
+                    <div class="flex gap-2">
+                        <button id="btn-export-md" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow transition-colors text-sm">
+                            <i class="fas fa-download mr-1"></i> (.md)
+                        </button>
+                        <button id="btn-export-txt" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded shadow transition-colors text-sm">
+                            <i class="fas fa-file-alt mr-1"></i> (.txt)
+                        </button>
+                    </div>
+                </div>
+                <div id="semantic-content" class="markdown-body text-gray-700">
+                    <!-- Conteúdo gerado entra aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileInfo = document.getElementById('file-info');
+        const fileName = document.getElementById('file-name');
+        
+        const tabUpload = document.getElementById('tab-upload');
+        const tabText = document.getElementById('tab-text');
+        const areaUpload = document.getElementById('area-upload');
+        const areaText = document.getElementById('area-text');
+        const textInput = document.getElementById('text-input');
+
+        const btnAnalyze = document.getElementById('btn-analyze');
+        const loader = document.getElementById('loader');
+        const results = document.getElementById('results');
+        const btnExportMd = document.getElementById('btn-export-md');
+        const btnExportTxt = document.getElementById('btn-export-txt');
+
+        let selectedFile = null;
+        let lastReportData = null; // Armazena os dados para exportação
+        let activeTab = 'upload'; // 'upload' ou 'text'
+
+        // Logica das Abas
+        tabUpload.addEventListener('click', () => {
+            activeTab = 'upload';
+            tabUpload.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+            tabUpload.classList.remove('text-gray-500');
+            tabText.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+            tabText.classList.add('text-gray-500');
+            areaUpload.classList.remove('hidden');
+            areaText.classList.add('hidden');
+        });
+
+        tabText.addEventListener('click', () => {
+            activeTab = 'text';
+            tabText.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+            tabText.classList.remove('text-gray-500');
+            tabUpload.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+            tabUpload.classList.add('text-gray-500');
+            areaText.classList.remove('hidden');
+            areaUpload.classList.add('hidden');
+        });
+
+        // Eventos de Drag & Drop
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-blue-500', 'bg-blue-50');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+            if (e.dataTransfer.files.length) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            fileName.textContent = file.name;
+            dropZone.classList.add('hidden');
+            fileInfo.classList.remove('hidden');
+        }
+
+        function buildExportContent() {
+            let filename = selectedFile ? selectedFile.name : "Trecho_Colado";
+            let exportContent = `# Relatório de Auditoria Acadêmica - ${filename}\n\n`;
+            exportContent += `## 1. Métricas Heurísticas e Estilometria\n`;
+            exportContent += `- **Risco de Referências Falsas:** ${lastReportData.risco_referencias_falsas || '0.0/10'}\n`;
+            exportContent += `- **Marcadores de IA Encontrados:** ${lastReportData.marcadores_llm_encontrados || '0'}\n`;
+            exportContent += `- **Perplexidade:** ${lastReportData.perplexidade_texto || 'N/A'}\n\n`;
+            exportContent += `---\n\n`;
+            exportContent += `## 2. Avaliação do Juiz Semântico\n\n`;
+            exportContent += lastReportData.juiz_semantico || "Não disponível";
+            return { content: exportContent, baseName: filename };
+        }
+
+        function downloadFile(content, fileName, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
+        // Função de Exportação MD
+        btnExportMd.addEventListener('click', () => {
+            if (!lastReportData) return;
+            const data = buildExportContent();
+            downloadFile(data.content, `auditoria_${data.baseName}.md`, 'text/markdown');
+        });
+
+        // Função de Exportação TXT
+        btnExportTxt.addEventListener('click', () => {
+            if (!lastReportData) return;
+            const data = buildExportContent();
+            
+            // Remove as marcações de Markdown mais pesadas para ficar limpo no TXT
+            let cleanTxt = data.content
+                .replace(/###\s/g, "")
+                .replace(/##\s/g, "")
+                .replace(/#\s/g, "")
+                .replace(/\*\*/g, "")
+                .replace(/\*/g, "-")
+                .replace(/✨/g, "")
+                .replace(/🟢/g, "");
+
+            downloadFile(cleanTxt, `auditoria_${data.baseName}.txt`, 'text/plain');
+        });
+
+        // Requisição para API FastAPI
+        btnAnalyze.addEventListener('click', async () => {
+            const formData = new FormData();
+
+            if (activeTab === 'upload') {
+                if (!selectedFile) {
+                    alert("Por favor, selecione um arquivo primeiro.");
+                    return;
+                }
+                formData.append('file', selectedFile);
+            } else {
+                const textContent = textInput.value.trim();
+                if (!textContent) {
+                    alert("Por favor, cole algum texto para analisar.");
+                    return;
+                }
+                formData.append('text', textContent);
+            }
+
+            // Captura o modelo selecionado
+            const modelChoice = document.getElementById('model-select').value;
+            formData.append('model_choice', modelChoice);
+
+            fileInfo.classList.add('hidden');
+            results.classList.add('hidden');
+            loader.classList.remove('hidden');
+            if (activeTab === 'upload') dropZone.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error("Erro ao analisar documento no servidor.");
+                
+                const data = await response.json();
+                
+                if (data.error) throw new Error(data.error);
+
+                lastReportData = data; // Guardando para exportação
+                
+                // Preenchendo as métricas
+                document.getElementById('metric-refs').textContent = data.risco_referencias_falsas || '0.0/10';
+                document.getElementById('metric-markers').textContent = data.marcadores_llm_encontrados || '0';
+                document.getElementById('metric-perplexity').textContent = data.perplexidade_texto || 'N/A';
+
+                const semanticRaw = data.juiz_semantico || "*Nenhum feedback semântico retornado.*";
+                
+                // Tentando extrair o Risco de Plágio do texto da IA via Regex
+                const plagoMatch = semanticRaw.match(/Risco de Pl[áa]gio['"]?\s*(?:de|:)?\s*(Baixo|M[ée]dio|Alto)/i);
+                if (plagoMatch && plagoMatch[1]) {
+                    document.getElementById('metric-plagiarism').textContent = plagoMatch[1].toUpperCase();
+                    // Colore o texto baseado no risco
+                    const riskColor = plagoMatch[1].toLowerCase() === 'alto' ? 'text-red-600' : (plagoMatch[1].toLowerCase() === 'médio' ? 'text-yellow-600' : 'text-green-600');
+                    document.getElementById('metric-plagiarism').className = `text-2xl font-bold ${riskColor}`;
+                } else {
+                    document.getElementById('metric-plagiarism').textContent = "Pendente";
+                    document.getElementById('metric-plagiarism').className = "text-2xl font-bold text-gray-800";
+                }
+
+                // Renderizando o Markdown retornado pelo Juiz Semântico
+                document.getElementById('semantic-content').innerHTML = marked.parse(semanticRaw);
+
+                loader.classList.add('hidden');
+                results.classList.remove('hidden');
+                if (activeTab === 'upload') dropZone.classList.remove('hidden');
+
+            } catch (error) {
+                alert("Falha na requisição: " + error.message);
+                loader.classList.add('hidden');
+                if (activeTab === 'upload') dropZone.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
