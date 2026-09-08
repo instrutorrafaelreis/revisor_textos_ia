@@ -85,7 +85,8 @@ async def analyze_file(
         results = {
             "fact_checking": fact_check_results,
             "stylometrics": style_results,
-            "semantic_judge_analysis": semantic_results
+            "semantic_judge_analysis": semantic_results,
+            "full_text": parsed_data.get('full_text', '')
         }
         
         # 4. Gerar Relatório e Retornar
