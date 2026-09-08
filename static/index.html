@@ -81,7 +81,7 @@
             <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2"><i class="fas fa-chart-bar text-blue-500 mr-2"></i> Relatório de Auditoria</h2>
             
             <!-- Cards de Métricas -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
                     <h4 class="text-gray-500 text-sm font-semibold mb-1">Referências Falsas</h4>
                     <p id="metric-refs" class="text-2xl font-bold text-gray-800">0.0/10</p>
@@ -90,10 +90,7 @@
                     <h4 class="text-gray-500 text-sm font-semibold mb-1">Marcadores de IA</h4>
                     <p id="metric-markers" class="text-2xl font-bold text-gray-800">0</p>
                 </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
-                    <h4 class="text-gray-500 text-sm font-semibold mb-1">Perplexidade</h4>
-                    <p id="metric-perplexity" class="text-2xl font-bold text-gray-800">N/A</p>
-                </div>
+                
                 <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500">
                     <h4 class="text-gray-500 text-sm font-semibold mb-1">Risco de Plágio</h4>
                     <p id="metric-plagiarism" class="text-2xl font-bold text-gray-800">N/A</p>
@@ -303,12 +300,12 @@
                 // Preenchendo as métricas
                 document.getElementById('metric-refs').textContent = data.risco_referencias_falsas || '0.0/10';
                 document.getElementById('metric-markers').textContent = data.marcadores_llm_encontrados || '0';
-                document.getElementById('metric-perplexity').textContent = data.perplexidade_texto || 'N/A';
+                
 
                 const semanticRaw = data.juiz_semantico || "*Nenhum feedback semântico retornado.*";
                 
                 // Tentando extrair o Risco de Plágio do texto da IA via Regex
-                const plagoMatch = semanticRaw.match(/Risco de Pl[áa]gio['"]?\s*(?:de|:)?\s*(Baixo|M[ée]dio|Alto)/i);
+                const plagoMatch = semanticRaw.match(/pl(?:[^\s]*?)gio.*?([Bb]aixo|[Mm][^\s]*?dio|[Aa]lto)/i);
                 if (plagoMatch && plagoMatch[1]) {
                     document.getElementById('metric-plagiarism').textContent = plagoMatch[1].toUpperCase();
                     // Colore o texto baseado no risco
