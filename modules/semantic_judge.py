@@ -33,8 +33,8 @@ def fetch_nvidia(client_nv, model_name, prompt):
                 {"role": "system", "content": "Você é um assistente rigoroso de revisão acadêmica. IMPORTANTE: Sua resposta deve ser EXCLUSIVAMENTE em Português do Brasil (PT-BR). NÃO VAZAR PROCESSO DE PENSAMENTO. NÃO mostre tags como <think> ou 'Here is a thinking process'. Retorne APENAS o relatório final formatado."},
                 {"role": "user", "content": prompt}
             ],
-            "temperature": 0.3,
-            "max_tokens": 2500,
+            "temperature": 0.5,
+            "max_tokens": 1024,
             "stream": False
         }
         
@@ -45,9 +45,9 @@ def fetch_nvidia(client_nv, model_name, prompt):
         
         message = completion.choices[0].message
         nv_text = getattr(message, 'content', None)
-        if nv_text is None:
-            # Fallback for models that might return empty content or structured outputs
-            nv_text = str(message)
+        if not nv_text or str(nv_text).strip() == 'None':
+            # Dump full completion to see what NVIDIA actually returned
+            nv_text = "Resposta Vazia ou Bloqueada. Dados brutos da API:\n```json\n" + completion.model_dump_json(indent=2) + "\n```"
             
         return f"### 🟢 Análise do Modelo Nuvem (NVIDIA - {model_name})\n\n{nv_text}"
     except Exception as e:
