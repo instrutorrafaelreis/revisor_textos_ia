@@ -123,8 +123,8 @@ MANUAL DE NORMALIZAÇÃO ABNT 2026 (BASE DE CONHECIMENTO):
                     models_to_run = getattr(config, 'NVIDIA_MODELS', [])
                 elif model_choice == "llama":
                     models_to_run = ['meta/llama-3.2-11b-vision-instruct']
-                elif model_choice == "deepseek":
-                    models_to_run = ['deepseek-ai/deepseek-v4-pro-0813']
+                elif model_choice == "glm":
+                    models_to_run = ['z-ai/glm-5.3-flash']
                     
                 for model_name in models_to_run:
                     futures.append(executor.submit(fetch_nvidia, client_nv, model_name, prompt))

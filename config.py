@@ -11,9 +11,9 @@ GEMINI_MODEL = 'gemini-3.5-flash'
 
 # Configuração NVIDIA NIM (Nuvem)
 USE_NVIDIA = True
-NVIDIA_API_KEY = os.getenv('NVIDIA_API_KEY', '')
+NVIDIA_API_KEY = os.getenv('NVIDIA_API_KEY', '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')
 NVIDIA_MODELS = [
     'meta/llama-3.2-11b-vision-instruct',
-    'deepseek-ai/deepseek-v4-pro-0813'
+    'z-ai/glm-5.3-flash'
 ]
 
