@@ -42,7 +42,13 @@ def fetch_nvidia(client_nv, model_name, prompt):
             kwargs["extra_body"] = {"chat_template_kwargs": {"thinking": False}}
             
         completion = client_nv.chat.completions.create(**kwargs)
-        nv_text = completion.choices[0].message.content
+        
+        message = completion.choices[0].message
+        nv_text = getattr(message, 'content', None)
+        if nv_text is None:
+            # Fallback for models that might return empty content or structured outputs
+            nv_text = str(message)
+            
         return f"### 🟢 Análise do Modelo Nuvem (NVIDIA - {model_name})\n\n{nv_text}"
     except Exception as e:
         return f"### 🟢 Análise do Modelo Nuvem (NVIDIA - {model_name})\n\n**Erro:** {e}"
